@@ -6,6 +6,7 @@
 
 from zlib import compress
 from canvas3d import Canvas3D
+from server import Server
 
 
 class Chunk:
@@ -36,6 +37,9 @@ class Chunk:
                     ca.add(x, y, z, block.color())
 
         ca.draw(wireframe)
+
+    def server(self, x=8, y=64, z=8):
+        Server(self.compress(), x, y, z)
 
     def pack(self):
         ids = ''
@@ -191,4 +195,4 @@ if __name__ == "__main__":
     f.write(c.compress())
     f.close()
 
-    c.draw()
+    c.server()

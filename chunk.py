@@ -38,6 +38,54 @@ class Chunk:
 
         ca.draw(wireframe)
 
+    def lighting(self):
+        sources = []
+        for x in range(16):
+            for z in range(16):
+                light = 15
+                for y in range(127, -1, -1):
+                    block = self.get(x, y, z)
+                    block.sky = light
+                    if block.color() not in ('', None):
+                        light = 0
+                    block.light = 0
+                    if block.id == 50:
+                        sources.append([x, y, z])
+        for coord in sources:
+            self.spread_light(coord[0], coord[1], coord[2], 14)
+
+    def spread_light(self, x, y, z, level):
+        try:
+            block = self.get(x, y, z)
+        except:
+            return
+        if block.light >= level:
+            return
+        block.light = level
+        if level == 1:
+            return
+        if block.color() not in (None, ''):
+            return
+        for dx in range(-1, 2):
+            for dy in range(-1, 2):
+                for dz in range(-1, 2):
+                    if abs(dx) + abs(dy) + abs(dz) != 1:
+                        continue
+                    self.spread_light(x + dx, y + dy, z + dz, level - 1)
+
+    def adjacent_blocks(self, x, y, z):
+        blocks = []
+        for dx in range(-1, 2):
+            for dy in range(-1, 2):
+                for dz in range(-1, 2):
+                    if abs(dx) + abs(dy) + abs(dz) != 2:
+                        continue
+                    try:
+                        blocks.append(self.get(x + dx, y + dy, z + dz))
+                    except:
+                        pass
+        return blocks
+
     def server(self, x=8, y=64, z=8):
         Server(self.compress(), x, y, z)
 
@@ -51,9 +99,9 @@ class Chunk:
             b2 = self.blocks[i + 1]
             ids += chr(b1.id)
             ids += chr(b2.id)
-            meta += chr(b1.meta << 4 | b2.meta)
-            light += chr(b1.light << 4 | b2.light)
-            sky += chr(b1.sky << 4 | b2.sky)
+            meta += chr((b2.meta << 4) | b1.meta)
+            light += chr((b2.light << 4) | b1.light)
+            sky += chr((b2.sky << 4) | b1.sky)
 
         return ids + meta + light + sky
 
@@ -190,6 +238,8 @@ if __name__ == "__main__":
     c.set(0, 1, 15, Block(50))
     c.set(15, 1, 15, Block(50))
     c.set(15, 1, 0, Block(50))
+
+    c.lighting()
 
     f = open("chunk", "w")
     f.write(c.compress())

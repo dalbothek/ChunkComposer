@@ -14,6 +14,7 @@ class Server:
     HOST = ''
     PORT = 25565
     SEPERATOR = unichr(0xa7)
+    TIME = 23000
 
     def __init__(self, chunk, x=8, y=64, z=8):
         self.pos = (x, y, z)
@@ -180,7 +181,7 @@ class Server:
     def time(self):
         print "  sending time"
         self.send_byte(4)
-        self.send_long(1000)
+        self.send_long(self.TIME)
 
     def wait(self):
         print "  waiting for disconnect"

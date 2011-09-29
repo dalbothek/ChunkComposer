@@ -21,8 +21,14 @@ class Server:
         self.chunk = chunk
         self.run = True
         self.timer = None
-        self.listen()
-        self.accept()
+        self.conn = None
+        try:
+            self.listen()
+            self.accept()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            self.stop()
 
     def listen(self):
         self.socket = socket(AF_INET, SOCK_STREAM)
@@ -195,9 +201,12 @@ class Server:
             self.conn.close()
         except:
             pass
+        self.conn = None
         print "Connection closed"
 
     def stop(self):
+        if self.conn:
+            self.close()
         try:
             self.socket.close()
         except:
